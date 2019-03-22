@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+    <script type="text/javascript" src='/javascripts/instascan.min.js'></script>
+    <!--<script type="text/javascript" src="https://rawgit.com/schmich/instascan-builds/master/instascan.min.js"></script>-->
+  </head>
+  <body>
+    <h1><%= title %></h1>
+    <p>Welcome to <%= title %></p>
+    <video id="preview" playsinline autoplay>></video>
+    <button id="button">seleccionar</button>
+    <button id="foto">Foto</button>
+    <select id="select"></select>
+    <ol id="añadir">
+    </ol>
+    <ol id='añadir2'>
+        
+    </ol>
+    
+    <canvas id="canvas"></canvas>
+    <script type="text/javascript">
+        var video = document.getElementById('preview');
+        var canvas = document.getElementById('canvas')
+        draw = canvas.getContext('2d');
+        const button = document.getElementById('button');
+        const foto = document.getElementById('foto');
+        const select = document.getElementById('select');        
+        
+        foto.addEventListener('click',function(){
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            draw.drawImage(video,0,0,video.videoWidth,video.videoHeight);
+        });
+
+        let currentStream;
+        function stopMediaTracks(stream) {
+            stream.getTracks().forEach(track => {
+                track.stop();
+            });
+        }
+
+        function stopMediaTracksVideo() {
+            
+            try{
+                console.log(video.srcObject.getTracks());
+                video.srcObject.getTracks().forEach(track => {
+                    track.stop();
+                    console.log("parando1");
+                });
+            }catch(err){
+                console.error(err);
+            }
+        }
+
+        function gotDevices(mediaDevices) {
+            select.innerHTML = '';
+            select.appendChild(document.createElement('option'));
+            let count = 1;
+            mediaDevices.forEach(mediaDevice => {
+                if (mediaDevice.kind === 'videoinput') {
+                    const option = document.createElement('option');
+                    option.value = mediaDevice.deviceId;
+                    const label = mediaDevice.label + mediaDevice.deviceId;//|| `Camera ${count++}`;
+                    const textNode = document.createTextNode(label);
+                    option.appendChild(textNode);
+                    select.appendChild(option);
+                }
+            });
+        }
+
+        button.addEventListener('click', event => {
+            /* 
+            if (typeof currentStream !== 'undefined') {
+                stopMediaTracks(currentStream);
+            }
+            const videoConstraints = {};
+            if (select.value === '') {
+                videoConstraints.facingMode = 'environment';
+            } else {
+                videoConstraints.deviceId = {
+                    exact: select.value
+                };
+            }
+            const constraints = {
+                video: videoConstraints,
+                audio: false
+            };
+            navigator.mediaDevices
+                .getUserMedia(constraints)
+                .then(stream => {
+                    currentStream = stream;
+                    video.srcObject = stream;
+                    return navigator.mediaDevices.enumerateDevices();
+                })
+                .then(gotDevices)
+                .catch(error => {
+                    console.error(error);
+                });
+            */
+            desplegar();
+        });
+
+        navigator.mediaDevices.enumerateDevices().then(gotDevices);
+
+        
+        
+        function desplegar(){
+            let scanner = new Instascan.Scanner({
+                video: video
+            });
+            scanner.addListener('scan', function (content) {
+                document.getElementById('añadir').innerHTML = document.getElementById('añadir').innerHTML + '<li>' + content + '<li>'
+                try{
+                    console.log(content);
+                    document.getElementById('añadir').innerHTML = document.getElementById('añadir').innerHTML + '<li>' + content + '<li>'
+                    res = window.open(content,"_blank");
+                    //res.focus();
+                }
+                catch(err){
+                    console.log("no se pudo abrir");
+                }
+                
+            });
+            stopMediaTracksVideo();
+            Instascan.Camera.getCameras().then(function (cameras) {
+                const videoConstraints = {};
+                if (select.value === '') {
+                    videoConstraints.facingMode = 'environment';
+                } else {
+                    console.log(select.value);
+                }
+                a = cameras;
+                if (cameras.length > 0) {
+                    cameras.forEach(function(camera){
+                        if(camera.id==select.value){
+                            console.log("paso1");
+                            scanner.start(camera);
+                            document.getElementById('añadir2').innerHTML = document.getElementById('añadir2').innerHTML + '<li>' + camera.id + '<li>'
+                        }
+                        //navigator.mediaDevices.enumerateDevices().then(gotDevices);
+                    });
+                    //scanner.start(cameras[1]);
+                } else {
+                    console.error('No cameras found.');
+                }
+            }).catch(function (e) {
+                console.error(e);
+            });
+        }
+    </script>
+  </body>
+</html>
