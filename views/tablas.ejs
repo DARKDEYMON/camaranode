@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <title></title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link href="css/style.css" rel="stylesheet">
+    </head>
+    <body>
+        <style>
+            .contenedor{
+                //width: 100%;
+                display: flex;
+                justify-content: space-between;
+            }
+            table{
+                border: 1px solid black;
+            }
+        </style>
+        <div class="contenedor">
+            <table>
+                <thead>
+                    <tr>
+                        <th>hola</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>hola</td>
+                    </tr>
+                </tbody>
+            </table>
+            <table>
+                <thead>
+                    <tr>
+                        <th>hola</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>hola</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </body>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+            var socket = io();
+    </script>
+</html>

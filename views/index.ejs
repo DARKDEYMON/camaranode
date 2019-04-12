@@ -14,6 +14,7 @@
     <button id="foto">Foto</button>
     <select id="select"></select>
     <ol id="añadir">
+        
     </ol>
     <ol id='añadir2'>
         
@@ -21,6 +22,8 @@
     
     <canvas id="canvas"></canvas>
     <script type="text/javascript">
+        var sound = new Audio('/sounds/ping4.mp3');
+
         var video = document.getElementById('preview');
         var canvas = document.getElementById('canvas')
         draw = canvas.getContext('2d');
@@ -34,7 +37,7 @@
             draw.drawImage(video,0,0,video.videoWidth,video.videoHeight);
         });
 
-        let currentStream;
+        //let currentStream;
         function stopMediaTracks(stream) {
             stream.getTracks().forEach(track => {
                 track.stop();
@@ -62,7 +65,7 @@
                 if (mediaDevice.kind === 'videoinput') {
                     const option = document.createElement('option');
                     option.value = mediaDevice.deviceId;
-                    const label = mediaDevice.label + mediaDevice.deviceId;//|| `Camera ${count++}`;
+                    const label = mediaDevice.label || `Camera ${count++}`;
                     const textNode = document.createTextNode(label);
                     option.appendChild(textNode);
                     select.appendChild(option);
@@ -111,10 +114,14 @@
                 video: video
             });
             scanner.addListener('scan', function (content) {
-                document.getElementById('añadir').innerHTML = document.getElementById('añadir').innerHTML + '<li>' + content + '<li>'
+                //document.getElementById('añadir').innerHTML = document.getElementById('añadir').innerHTML + '<li>' + content + '<li>';
+                vibrar();
                 try{
                     console.log(content);
-                    document.getElementById('añadir').innerHTML = document.getElementById('añadir').innerHTML + '<li>' + content + '<li>'
+                    parent = document.getElementById('añadir'); //= document.getElementById('añadir').innerHTML + '<li>' + content + '<li>';
+                    resul = document.createElement('li');
+                    resul.textContent = content;
+                    parent.appendChild(resul);
                     res = window.open(content,"_blank");
                     //res.focus();
                 }
@@ -148,6 +155,11 @@
             }).catch(function (e) {
                 console.error(e);
             });
+        }
+
+        function vibrar(){
+            navigator.vibrate([500, 250]);
+            sound.play();
         }
     </script>
   </body>

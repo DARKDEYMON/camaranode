@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <title></title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link href="/stylesheets/motion.css" rel="stylesheet">
+    </head>
+    <body>
+        <div class="grillaboton">
+            <button id="empesar">Empesar</button>
+        </div>
+        <div class="grilla">
+            <div class="center">
+                <video id="video" playsinline autoplay></video>
+            </div>
+            <div class="center">
+                <canvas id="canvas"></canvas>
+            </div>
+        </div>
+    </body>
+    <script>
+        var video = document.getElementById("video");
+        var canvas = document.getElementById("canvas");
+        var ctx = canvas.getContext('2d');
+        
+        var empesar = document.getElementById("empesar");
+
+        var sample_size = 20;
+        var threshold = 40;
+        var previous_frame = [];
+
+        empesar.addEventListener('click',event => {
+            navigator.mediaDevices.getUserMedia({ video: true }).then(function(stream) {
+                video.srcObject = stream;
+                video.play();
+                console.log("hola1");
+            })
+            .then(() => new Promise(resolve => video.onloadedmetadata = resolve))
+            .then(()=>{
+                console.log(video.videoWidth);
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                draw();
+            });
+        });
+
+        function motion_pixels() {
+            var motion = [];
+
+            var canvas2 = document.createElement("canvas");
+            var ctx2 = canvas2.getContext('2d');
+            canvas2.width = video.videoWidth;
+            canvas2.height = video.videoHeight;
+            ctx2.drawImage(video,0,0,video.videoWidth,video.videoHeight);
+            var data = ctx2.getImageData(0, 0, video.videoWidth, video.videoHeight).data;
+            for (var y = 0; y < video.videoHeight; y+= sample_size) {
+                for (var x = 0; x < video.videoWidth; x+= sample_size) {
+                    var pos = (x + y * video.videoWidth) * 4;
+                    // get red, blue and green pixel value
+                    var r = data[pos];
+                    var g = data[pos+1];
+                    var b = data[pos+2];
+                    // draw the pixels as blocks of colours
+                    //ctx.fillStyle = rgb(r, g, b);
+                    //ctx.fillRect(x, y, sample_size, sample_size);
+
+                    if(previous_frame[pos] && Math.abs(previous_frame[pos] - r) > threshold) {
+                        //ctx.fillStyle = rgb(r, g, b);
+                        //ctx.fillRect(x, y, sample_size, sample_size);
+                        motion.push({x: x, y: y, r: r, g: g, b: b});
+                    }
+                    previous_frame[pos] = r;
+                }
+            }
+            return motion;
+        }
+
+        function draw(){
+            var motion = motion_pixels();
+            //ctx.clearRect(0,0,video.videoWidth,video.videoHeight);
+            for (i = 0; i < motion.length; i++) {
+                var m = motion[i];
+                draw_interval(m);
+            }
+            requestAnimationFrame(draw);
+        }
+        function draw_interval(m){
+            ctx.fillStyle = rgb(m.r, m.g, m.b);
+            ctx.fillRect(m.x, m.y, sample_size, sample_size);
+            setTimeout(function(){
+                ctx.clearRect(m.x,m.y,sample_size,sample_size);
+            }, 1000);
+        }
+
+        function rgb(r, g, b) {
+            if (g == undefined) g = r;
+            if (b == undefined) b = r;
+            return 'rgb('+clamp(Math.round(r),0,255)+', '+clamp(Math.round(g),0,255)+', '+clamp(Math.round(b),0,255)+')';
+        };
+
+        function clamp(value, min, max){
+            return Math.min(Math.max(value, Math.min(min, max)),Math.max(min, max));
+        }
+        
+    </script>
+</html>
